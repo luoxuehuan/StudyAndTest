@@ -6,7 +6,7 @@ public class RedisJava {
 
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
-		// Connecting to Redis server on localhosthulb
+		// Connecting to Redis server on localhosthulblbb
 		Jedis jedis = new Jedis("10.137.12.146", 6379);
 
 		System.out.println("Connection to server sucessfully");
