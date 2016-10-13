@@ -1,7 +1,9 @@
 package com.ibeifeng.sparkproject.spark.ad;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +18,10 @@ import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 
+import com.luoxuehuan.sparkproject.dao.IAdBlacklistDAO;
+import com.luoxuehuan.sparkproject.dao.factory.DAOFactory;
+import com.luoxuehuan.sparkproject.domain.AdBlacklist;
+
 import kafka.serializer.StringDecoder;
 import scala.Tuple2;
 
@@ -25,6 +31,9 @@ public class AdRealSpark {
 		SparkConf conf = new SparkConf();
 		conf.setAppName("adreal");
 		conf.setMaster("local[2]");//Streaming至少 2个core!
+		conf.set("spark.serizlizer", "org.apache.spark.serializer.KryoSerializer");
+		conf.set("spark.streaming.blockInterval", "50");
+		conf.set("spark.streaming.receiver.writeAheadLog.enable", "true");
 		JavaSparkContext jsc = new JavaSparkContext(conf);
 		
 		/**
@@ -65,6 +74,10 @@ public class AdRealSpark {
 		/**
 		 * 处理log日志，转化成 想要的格式。
 		 * 
+		 * 使用transform转换操作! 
+		 * 
+		 * log日志包含什么?  
+		 * 
 		 * <offset,log>
 		 * 
 		 * 
@@ -90,6 +103,21 @@ public class AdRealSpark {
 		});
 		//JavaStreamingContext, Class<K>, Class<V>, Class<KD>, Class<VD>, Map<String,String>, Set<String>) 
 		//JavaStreamingContext, Class<String>, Class<String>, Class<StringEncoder>, Class<StringEncoder>, Map<String,String>, Set<String>)
+	
+		/**
+		 * 从数据库里面获取数据, 组装成RDD,进行
+		 */
+		IAdBlacklistDAO adBlocklistDAO = DAOFactory.getAdBlacklistDAO();
+		List<AdBlacklist> adBlacklists = adBlocklistDAO.findAll();
+		
+		/**
+		 * list 和rdd不能直接join  通过join optional 
+		 *  但是 list 转化成tuple 也不是简单的tuple ,是带true的tuple
+		 * 把list 转化成rdd.
+		 */
+		List<Tuple2<Long,Boolean>> tuples = new ArrayList<Tuple2<Long,Boolean>>();
+		
+		
 	}
 
 }
